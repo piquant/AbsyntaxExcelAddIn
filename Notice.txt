@@ -1,0 +1,3 @@
+Absyntax Excel Add-in.  Copyright © 2013 Managing Infrastructure Information Ltd.  All rights reserved.
+
+This software product integrates with the Absyntax Framework developed by Managing Infrastructure Information Ltd (http://www.absyntax.com/).  See also the file AbsyntaxFramework.Licence.rtf which, inter alia, defines the requirements of the copyright holder in respect of redistribution of the Absyntax Framework.

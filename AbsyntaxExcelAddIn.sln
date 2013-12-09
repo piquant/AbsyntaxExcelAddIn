@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AbsyntaxExcelAddIn", "AbsyntaxExcelAddIn\AbsyntaxExcelAddIn.csproj", "{B86DDA9A-80BE-4D8F-BE9E-E536BC290C4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AbsyntaxExcelAddIn.Resources", "AbsyntaxExcelAddIn.Resources\AbsyntaxExcelAddIn.Resources.csproj", "{6CCFF3B0-E6AE-451D-9604-EAAEF4E1C9E3}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "AbsyntaxExcelAddInSetup", "..\Setup\AbsyntaxExcelAddInSetup\AbsyntaxExcelAddInSetup.vdproj", "{9D345FBE-7837-4E56-BA12-BCC9791AEACE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DB7394F9-6110-4395-8AA1-CFE75AF6D5E7}"
+	ProjectSection(SolutionItems) = preProject
+		AbsyntaxExcelAddIn.vsmdi = AbsyntaxExcelAddIn.vsmdi
+		AbsyntaxExcelAddInKey.snk = AbsyntaxExcelAddInKey.snk
+		AbsyntaxFramework.Licence.rtf = AbsyntaxFramework.Licence.rtf
+		Licence.rtf = Licence.rtf
+		Local.testsettings = Local.testsettings
+		Notice.txt = Notice.txt
+		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AbsyntaxExcelAddInTestProject", "AbsyntaxExcelAddInTestProject\AbsyntaxExcelAddInTestProject.csproj", "{87B0A885-80C0-4F3C-A92C-F6AA0CF8F953}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Unit Tests", "Unit Tests", "{62115747-22DA-4942-A4F4-20406D41707D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AbsyntaxExcelAddIn.Core", "AbsyntaxExcelAddIn.Core\AbsyntaxExcelAddIn.Core.csproj", "{97E45FA6-C401-4718-BE03-768B0A7DEFBD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{49E0145C-2080-4345-9930-A4247A758775}"
+	ProjectSection(SolutionItems) = preProject
+		Lib\Moq.dll = Lib\Moq.dll
+		Lib\Moq.pdb = Lib\Moq.pdb
+		Lib\WPFToolkit.Extended.dll = Lib\WPFToolkit.Extended.dll
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = AbsyntaxExcelAddIn.vsmdi
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B86DDA9A-80BE-4D8F-BE9E-E536BC290C4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B86DDA9A-80BE-4D8F-BE9E-E536BC290C4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B86DDA9A-80BE-4D8F-BE9E-E536BC290C4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B86DDA9A-80BE-4D8F-BE9E-E536BC290C4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CCFF3B0-E6AE-451D-9604-EAAEF4E1C9E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CCFF3B0-E6AE-451D-9604-EAAEF4E1C9E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CCFF3B0-E6AE-451D-9604-EAAEF4E1C9E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CCFF3B0-E6AE-451D-9604-EAAEF4E1C9E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D345FBE-7837-4E56-BA12-BCC9791AEACE}.Debug|Any CPU.ActiveCfg = Debug
+		{9D345FBE-7837-4E56-BA12-BCC9791AEACE}.Release|Any CPU.ActiveCfg = Release
+		{87B0A885-80C0-4F3C-A92C-F6AA0CF8F953}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87B0A885-80C0-4F3C-A92C-F6AA0CF8F953}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87B0A885-80C0-4F3C-A92C-F6AA0CF8F953}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87B0A885-80C0-4F3C-A92C-F6AA0CF8F953}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97E45FA6-C401-4718-BE03-768B0A7DEFBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97E45FA6-C401-4718-BE03-768B0A7DEFBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97E45FA6-C401-4718-BE03-768B0A7DEFBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97E45FA6-C401-4718-BE03-768B0A7DEFBD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{87B0A885-80C0-4F3C-A92C-F6AA0CF8F953} = {62115747-22DA-4942-A4F4-20406D41707D}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,22 @@
+# Build folders
+bin
+obj
+Build
+
+# User-specific files
+*.suo
+*.user
+
+# Test results
+TestResults
+
+# Key files
+*.snk
+*.pfx
+
+# Named files
+
+
+# Setup
+*.exe
+*.msi

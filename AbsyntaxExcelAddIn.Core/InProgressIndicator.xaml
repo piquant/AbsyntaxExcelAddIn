@@ -1,0 +1,44 @@
+﻿<UserControl 
+    x:Class="AbsyntaxExcelAddIn.Core.InProgressIndicator"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+    Background="Transparent" 
+    IsVisibleChanged="UserControl_IsVisibleChanged"
+    SizeChanged="UserControl_SizeChanged">
+
+    <Grid 
+        x:Name="LayoutRoot" 
+        Background="Transparent" 
+        ToolTip=""
+        HorizontalAlignment="Center" 
+        VerticalAlignment="Center"
+        DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl}}}">
+        
+        <Canvas 
+            RenderTransformOrigin="0.5,0.5" 
+            HorizontalAlignment="Center" 
+            VerticalAlignment="Center" 
+            Unloaded="Canvas_Unloaded">
+            
+            <Canvas.Resources>
+                <Style TargetType="{x:Type Ellipse}">
+                    <Setter Property="Fill" Value="{Binding Foreground}" />
+                    <Setter Property="Stretch" Value="Fill" />
+                    <Setter Property="Width" Value="{Binding EllipseSize}" />
+                    <Setter Property="Height" Value="{Binding EllipseSize}" />
+                </Style>
+            </Canvas.Resources>
+            
+            <Ellipse x:Name="C0" Opacity="1.0"/>
+            <Ellipse x:Name="C1" Opacity="0.9"/>
+            <Ellipse x:Name="C2" Opacity="0.8"/>
+            <Ellipse x:Name="C3" Opacity="0.7"/>
+            <Ellipse x:Name="C4" Opacity="0.6"/>
+            <Ellipse x:Name="C5" Opacity="0.5"/>
+            <Ellipse x:Name="C6" Opacity="0.4"/>
+            <Ellipse x:Name="C7" Opacity="0.3"/>
+            <Ellipse x:Name="C8" Opacity="0.2"/>
+            <Ellipse x:Name="C9" Opacity="0.0"/>
+        </Canvas>
+    </Grid>
+</UserControl>

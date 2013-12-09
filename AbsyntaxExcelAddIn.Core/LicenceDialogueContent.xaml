@@ -1,0 +1,91 @@
+﻿<UserControl 
+    x:Class="AbsyntaxExcelAddIn.Core.LicenceDialogueContent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:AbsyntaxExcelAddIn.Core"
+    xmlns:cv="clr-namespace:AbsyntaxExcelAddIn.Core.Converters"
+    xmlns:res="clr-namespace:AbsyntaxExcelAddIn.Resources;assembly=AbsyntaxExcelAddIn.Resources"
+    SnapsToDevicePixels="True"
+    UseLayoutRounding="True">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/ExpressionDark.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            
+            <cv:BoolToBoolConverter x:Key="InvertingBoolConverter" />
+            
+            <Style TargetType="{x:Type local:AltGroupBox}" BasedOn="{StaticResource {x:Type GroupBox}}">
+                <Setter Property="Margin" Value="0,3,0,0" />
+                <Setter Property="Padding" Value="3,6,3,2" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border BorderThickness="0" Background="{StaticResource ControlBackgroundBrush}">
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <RadioButton 
+                GroupName="RBG" 
+                Margin="9,2,0,2"
+                IsChecked="{Binding UsesFullLicence, Mode=TwoWay}"
+                Content="{x:Static res:TextResources.Caption_FullLicence}" />
+
+            <local:AltGroupBox Grid.Row="1">
+                <local:AltGroupBox.Header>
+                    <RadioButton
+                        x:Name="TPELO"
+                        GroupName="RBG" 
+                        IsChecked="{Binding UsesFullLicence, Converter={StaticResource InvertingBoolConverter}, Mode=TwoWay}"
+                        Content="{x:Static res:TextResources.Caption_TPELicence}" />
+                </local:AltGroupBox.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock 
+                        Text="{x:Static res:TextResources.Label_ClientId}" 
+                        VerticalAlignment="Center" 
+                        Margin="5,3" />
+                    <TextBox
+                        Grid.Column="1" 
+                        Text="{Binding ClientId, UpdateSourceTrigger=PropertyChanged}" 
+                        MaxLength="32" 
+                        VerticalAlignment="Center" 
+                        Margin="5,3"
+                        IsEnabled="{Binding ElementName=TPELO, Path=IsChecked}"/>
+                </Grid>
+            </local:AltGroupBox>
+
+            <StackPanel 
+                Grid.Row="2" 
+                Orientation="Horizontal"
+                HorizontalAlignment="Right">
+
+                <StackPanel.Resources>
+                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+                        <Setter Property="Margin" Value="10,10,0,0" />
+                        <Setter Property="Width" Value="70" />
+                        <Setter Property="Height" Value="20" />
+                    </Style>
+                </StackPanel.Resources>
+                <Button 
+                    Click="OkButton_Click" 
+                    Content="{x:Static res:TextResources.Caption_Ok}" 
+                    IsEnabled="{Binding IsValid}" />
+                <Button 
+                    Click="CancelButton_Click" 
+                    Content="{x:Static res:TextResources.Caption_Cancel}" 
+                    IsCancel="True" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>
