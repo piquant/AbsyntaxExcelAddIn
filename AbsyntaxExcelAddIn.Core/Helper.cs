@@ -244,6 +244,7 @@ namespace AbsyntaxExcelAddIn.Core
         public static void SetRangeValues(IEnumerable<object> e, Excel.Range range, RangeOrdering order)
         {
             int valueCount = e.Count();
+            if (valueCount == 0) return;
             int rowCount, colCount;
             if (order == RangeOrdering.ByRow) {
                 colCount = range.Columns.Count;

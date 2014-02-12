@@ -34,7 +34,7 @@ using System.Runtime.InteropServices;
 
 // The AssemblyFileVersionAttribute is incremented with every build in order to 
 // distinguish one build from another.
-[assembly: AssemblyFileVersion("1.0.5076.14040")]
+[assembly: AssemblyFileVersion("1.0.5155.30453")]
 
 // By default, the "Product version" shown in the file properties window is
 // the same as the value specified for AssemblyFileVersionAttribute.
