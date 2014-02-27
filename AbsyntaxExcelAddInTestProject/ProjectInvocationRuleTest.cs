@@ -32,27 +32,66 @@ namespace AbsyntaxExcelAddInTestProject
             File.Delete(s_tempFilePath);
         }
 
+        private static ProjectInvocationRule Create(
+            IWorksheetProvider wsProvider = null, 
+            INamedRangeProvider nrProvider = null, 
+            IDataReader reader = null)
+        {
+            wsProvider = wsProvider ?? new Mock<IWorksheetProvider>().Object;
+            nrProvider = nrProvider ?? new Mock<INamedRangeProvider>().Object;
+            reader = reader ?? new Mock<IDataReader>().Object;
+            return new ProjectInvocationRule(wsProvider, nrProvider, reader);
+        }
+
+        private static ProjectInvocationRule Create(
+            int id,
+            IWorksheetProvider wsProvider = null,
+            INamedRangeProvider nrProvider = null)
+        {
+            wsProvider = wsProvider ?? new Mock<IWorksheetProvider>().Object;
+            nrProvider = nrProvider ?? new Mock<INamedRangeProvider>().Object;
+            return new ProjectInvocationRule(wsProvider, nrProvider, id);
+        }
+
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void NullWorksheetProviderThrowsException1Test()
         {
-            new ProjectInvocationRule(null, 1);
+            var nrp = new Mock<INamedRangeProvider>().Object;
+            new ProjectInvocationRule(null, nrp, 1);
         }
         
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void NullWorksheetProviderThrowsException2Test()
         {
+            var nrp = new Mock<INamedRangeProvider>().Object;
             var dr = new Mock<IDataReader>().Object;
-            new ProjectInvocationRule(null, dr);
+            new ProjectInvocationRule(null, nrp, dr);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void NullNamedRangeProviderThrowsException1Test()
+        {
+            var wsp = new Mock<IWorksheetProvider>().Object;
+            new ProjectInvocationRule(wsp, null, 1);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void NullNamedRangeProviderThrowsException2Test()
+        {
+            var wsp = new Mock<IWorksheetProvider>().Object;
+            var dr = new Mock<IDataReader>().Object;
+            new ProjectInvocationRule(wsp, null, dr);
         }
 
         [TestMethod]
         public void DeserialisationConstructorTest()
         {
-            var wp = new Mock<IWorksheetProvider>().Object;
             var drMock = new Mock<IDataReader>();
-            var r = new ProjectInvocationRule(wp, drMock.Object);
+            var r = Create(null, null, drMock.Object);
             drMock.Verify(m => m.Read<int>(), Times.AtLeastOnce());
             drMock.Verify(m => m.Read<bool>(), Times.AtLeastOnce());
             drMock.Verify(m => m.Read<string>(), Times.AtLeastOnce());
@@ -64,32 +103,28 @@ namespace AbsyntaxExcelAddInTestProject
         [TestMethod]
         public void InputSheetKeyIsNullIfNoSheetsToSelectTest()
         {
-            var wp = new Mock<IWorksheetProvider>().Object;
-            var r = new ProjectInvocationRule(wp, 1);
+            var r = Create(1);
             Assert.IsNull(r.InputSheetKey);
         }
 
         [TestMethod]
         public void InputSheetNameIsNullIfNoSheetsToSelectTest()
         {
-            var wp = new Mock<IWorksheetProvider>().Object;
-            var r = new ProjectInvocationRule(wp, 1);
+            var r = Create(1);
             Assert.IsNull(r.InputSheetName);
         }
 
         [TestMethod]
         public void OutputSheetKeyIsNullIfNoSheetsToSelectTest()
         {
-            var wp = new Mock<IWorksheetProvider>().Object;
-            var r = new ProjectInvocationRule(wp, 1);
+            var r = Create(1);
             Assert.IsNull(r.OutputSheetKey);
         }
 
         [TestMethod]
         public void OutputSheetNameIsNullIfNoSheetsToSelectTest()
         {
-            var wp = new Mock<IWorksheetProvider>().Object;
-            var r = new ProjectInvocationRule(wp, 1);
+            var r = Create(1);
             Assert.IsNull(r.OutputSheetName);
         }
 
@@ -113,8 +148,7 @@ namespace AbsyntaxExcelAddInTestProject
 
         private void PerformProjectPathTest(string path, bool expectedIsValid)
         {
-            var wp = new Mock<IWorksheetProvider>().Object;
-            var r = new ProjectInvocationRule(wp, 1);
+            var r = Create(1);
             r.UsesInput = false;
             r.UsesOutput = false;
             r.ProjectPath = path;

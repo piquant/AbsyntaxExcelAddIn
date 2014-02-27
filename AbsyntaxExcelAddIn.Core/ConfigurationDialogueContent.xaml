@@ -215,16 +215,14 @@
                                         <RowDefinition Height="*" />
                                     </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" MinWidth="250" />
+                                        <ColumnDefinition Width="160" />
                                         <ColumnDefinition Width="70" />
                                         <ColumnDefinition Width="70" />
                                         <ColumnDefinition Width="70" />
                                     </Grid.ColumnDefinitions>
                                 
-                                    <local:AltGroupBox Grid.ColumnSpan="3">
+                                    <local:AltGroupBox>
                                         <local:AltGroupBox.Header>
                                             <CheckBox 
                                                 Style="{StaticResource HeaderCheckBox}" 
@@ -233,21 +231,24 @@
                                         </local:AltGroupBox.Header>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"  />
+                                                <ColumnDefinition Width="4*" />
+                                                <ColumnDefinition Width="3*" />
                                                 <ColumnDefinition Width="80" />
-                                                <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
                                             <ComboBox 
                                                 Margin="0,2,2,2"
                                                 ItemsSource="{Binding AvailableSheetNames}" 
                                                 SelectedItem ="{Binding InputSheetName}" />
-                                            <TextBox 
-                                                x:Name="IRTB"
+                                            <ComboBox 
+                                                x:Name="IRCB"
                                                 Grid.Column="1" 
                                                 Margin="2" 
-                                                CharacterCasing="Upper"
+                                                IsEditable="True"
+                                                ItemsSource="{Binding InputSheetRangeNames, Mode=OneTime}"
                                                 Text="{Binding InputCellRange, UpdateSourceTrigger=PropertyChanged}"
-                                                MaxLength="21" />
+                                                MouseUp="CellRangeCombo_MouseUp"
+                                                ab:EditableComboBoxBehaviour.MaxLength="255"
+                                                ab:EditableComboBoxBehaviour.CharacterCasing="Upper" />
                                             <ComboBox 
                                                 Grid.Column="2" 
                                                 Margin="2,2,0,2"
@@ -256,7 +257,7 @@
                                         </Grid>
                                     </local:AltGroupBox>
 
-                                    <local:AltGroupBox Grid.Column="3" Header="{x:Static res:TextResources.TimeLimit}">
+                                    <local:AltGroupBox Grid.Column="1" Header="{x:Static res:TextResources.TimeLimit}">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="60" />
@@ -264,7 +265,7 @@
                                             </Grid.ColumnDefinitions>
                                             <wex:IntegerUpDown
                                                 x:Name="TL"
-                                                Height="{Binding ElementName=IRTB, Path=ActualHeight}"
+                                                Height="{Binding ElementName=IRCB, Path=ActualHeight}"
                                                 Value="{Binding TimeLimit}"
                                                 Minimum="1"
                                                 Maximum="999">
@@ -326,7 +327,7 @@
                                         </Grid>
                                     </local:AltGroupBox>
 
-                                    <local:AltGroupBox Grid.Column="4" Header="{x:Static res:TextResources.Reload}">
+                                    <local:AltGroupBox Grid.Column="2" Header="{x:Static res:TextResources.Reload}">
                                         <CheckBox 
                                             VerticalAlignment="Center"
                                             HorizontalAlignment="Center"
@@ -334,7 +335,7 @@
                                     </local:AltGroupBox>
 
                                     <local:AltGroupBox 
-                                        Grid.Column="5" 
+                                        Grid.Column="3" 
                                         Header="{x:Static res:TextResources.Enabled}">
 
                                         <CheckBox 
@@ -344,11 +345,11 @@
                                     </local:AltGroupBox>
 
                                     <local:AltGroupBox 
-                                        Grid.Column="6" 
+                                        Grid.Column="4" 
                                         Header="{x:Static res:TextResources.Status}" 
                                         Content="{Binding IsValid, Converter={StaticResource IsValidToImageConverter}}" />
 
-                                    <local:AltGroupBox Grid.Row="1" Grid.ColumnSpan="3">
+                                    <local:AltGroupBox Grid.Row="1">
                                         <local:AltGroupBox.Header>
                                             <CheckBox 
                                                 Style="{StaticResource HeaderCheckBox}"
@@ -357,20 +358,23 @@
                                         </local:AltGroupBox.Header>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"  />
+                                                <ColumnDefinition Width="4*" />
+                                                <ColumnDefinition Width="3*" />
                                                 <ColumnDefinition Width="80" />
-                                                <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
                                             <ComboBox 
                                                 Margin="0,2,2,2"
                                                 ItemsSource="{Binding AvailableSheetNames}" 
                                                 SelectedItem ="{Binding OutputSheetName}" />
-                                            <TextBox 
+                                            <ComboBox 
                                                 Grid.Column="1" 
                                                 Margin="2" 
-                                                CharacterCasing="Upper"
+                                                IsEditable="True"
+                                                ItemsSource="{Binding OutputSheetRangeNames, Mode=OneTime}"
                                                 Text="{Binding OutputCellRange, UpdateSourceTrigger=PropertyChanged}"
-                                                MaxLength="21" />
+                                                MouseUp="CellRangeCombo_MouseUp"
+                                                ab:EditableComboBoxBehaviour.MaxLength="255"
+                                                ab:EditableComboBoxBehaviour.CharacterCasing="Upper" />
                                             <ComboBox 
                                                 Grid.Column="2" 
                                                 Margin="2,2,0,2"
@@ -379,7 +383,7 @@
                                         </Grid>
                                     </local:AltGroupBox>
 
-                                    <local:AltGroupBox Grid.Row="1" Grid.Column="3" Grid.ColumnSpan="3" Header="{x:Static res:TextResources.Project}">
+                                    <local:AltGroupBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Header="{x:Static res:TextResources.Project}">
                                         <DockPanel LastChildFill="True">
                                             <Button 
                                                 DockPanel.Dock="Right" 
@@ -391,7 +395,7 @@
                                                 Content="{StaticResource EllipsisImage}" />
                                             <TextBox 
                                                 x:Name="PP" 
-                                                Height="{Binding ElementName=IRTB, Path=ActualHeight}"
+                                                Height="{Binding ElementName=IRCB, Path=ActualHeight}"
                                                 Margin="0,0,2,0"
                                                 MaxLength="260"
                                                 Text="{Binding ProjectPath, UpdateSourceTrigger=PropertyChanged}" />
@@ -400,7 +404,7 @@
 
                                     <local:AltGroupBox 
                                         Grid.Row="1" 
-                                        Grid.Column="6" 
+                                        Grid.Column="4" 
                                         Header="{x:Static res:TextResources.LastRun}">
                                         <Image 
                                             Style="{StaticResource SmallIconImageStyle}" 
@@ -453,7 +457,7 @@
                     Click="PromoteRuleButton_Click" />
                 <Separator />
                 <ComboBox 
-                    Margin="3,0"
+                    Margin="3"
                     ToolTip="{x:Static res:TextResources.ToolTip_Mode}"
                     ItemsSource="{Binding AvailableExecutionModeNames, Mode=OneTime}" 
                     SelectedItem="{Binding Mode, Converter={StaticResource ExecutionModeConverter}}" 
@@ -464,6 +468,7 @@
                 Grid.Row="1"
                 ItemsSource="{Binding Rules}" 
                 ItemContainerStyle="{StaticResource ListItemContainerStyle}"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                 SelectedItem="{Binding SelectedRule}"
                 KeyboardNavigation.TabNavigation="Continue" 
                 SelectionMode="Single"

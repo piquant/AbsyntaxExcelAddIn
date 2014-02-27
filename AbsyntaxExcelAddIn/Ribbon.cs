@@ -1,4 +1,4 @@
-﻿/* Copyright © 2013 Managing Infrastructure Information Ltd
+﻿/* Copyright © 2013-2014 Managing Infrastructure Information Ltd
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided 
@@ -26,10 +26,11 @@
 
 using System;
 using System.Configuration;
+using System.Drawing;
 using System.Windows.Forms;
-using Microsoft.Office.Tools.Ribbon;
-using AbsyntaxExcelAddIn.Resources;
 using AbsyntaxExcelAddIn.Core;
+using AbsyntaxExcelAddIn.Resources;
+using Microsoft.Office.Tools.Ribbon;
 
 namespace AbsyntaxExcelAddIn
 {
@@ -49,7 +50,7 @@ namespace AbsyntaxExcelAddIn
             
             ThisAddIn addIn = Globals.ThisAddIn;
             addIn.HostStatusChanged += AddIn_HostStatusChanged;
-            addIn.ExecutionStateChanged += AddIn_ExecutionStateChanged;
+            addIn.StateChanged += AddIn_StateChanged;
             SetButtonStates();
             UpdateRunButtonSuperTip();
         }
@@ -82,7 +83,7 @@ namespace AbsyntaxExcelAddIn
             m_run.SuperTip = tip;
         }
 
-        private void AddIn_ExecutionStateChanged(object sender, System.EventArgs e)
+        private void AddIn_StateChanged(object sender, System.EventArgs e)
         {
             SetButtonStates();
             UpdateRunButtonSuperTip();
@@ -91,23 +92,33 @@ namespace AbsyntaxExcelAddIn
         private void SetButtonStates()
         {
             ThisAddIn addIn = Globals.ThisAddIn;
-            m_configure.Enabled = addIn.ExecutionState != AddInExecutionState.Executing;
+            m_configure.Enabled = addIn.HasActiveWorkbook && addIn.ExecutionState != AddInExecutionState.Executing;
             m_run.Enabled = addIn.ExecutionState == AddInExecutionState.CanExecute;
         }
+
+        /// <summary>
+        /// The last bounds of the ProjectConfigurationDialogue.
+        /// </summary>
+        private Rectangle? m_bounds;
 
         private void Configure_Click(object sender, RibbonControlEventArgs e)
         {
             ThisAddIn addIn = Globals.ThisAddIn;
-            var f = new ProjectConfigurationDialogue(addIn);
-            f.Mode = addIn.Mode;
+            var d = new ProjectConfigurationDialogue(addIn);
+            if (m_bounds.HasValue) {
+                d.Bounds = m_bounds.Value;
+                d.StartPosition = FormStartPosition.Manual;
+            }
+            d.Mode = addIn.Mode;
             ProjectInvocationRule[] rules = addIn.Rules;
-            f.SetRules(rules);
-            var result = f.ShowDialog();
+            d.SetRules(rules);
+            var result = d.ShowDialog();
             if (result == DialogResult.OK) {
-                addIn.Mode = f.Mode;
-                addIn.Rules = rules = f.GetRules();
+                addIn.Mode = d.Mode;
+                addIn.Rules = rules = d.GetRules();
                 addIn.WriteRules();
             }
+            m_bounds = d.Bounds;
         }
 
         private void Run_Click(object sender, RibbonControlEventArgs e)

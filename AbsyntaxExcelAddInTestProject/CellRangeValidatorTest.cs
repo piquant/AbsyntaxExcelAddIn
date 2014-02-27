@@ -9,133 +9,137 @@ namespace AbsyntaxExcelAddInTestProject
     [TestClass]
     public class CellRangeValidatorTest
     {
+        private static CellRangeValidator Create(string range)
+        {
+            var mock = new Mock<INamedRangeProvider>();
+            var provider = mock.Object;
+            return Create(range, provider);
+        }
+
+        private static CellRangeValidator Create(string range, INamedRangeProvider provider)
+        {
+            return new CellRangeValidator(range, provider);
+        }
+
         [TestMethod]
         public void TopLeftWorksheetCellIsValidTest()
         {
-            var v = new CellRangeValidator("A1:A1");
+            var v = Create("A1:A1");
             Assert.IsTrue(v.IsValid);
         }
 
         [TestMethod]
         public void BottomRightWorksheetCellIsValidTest()
         {
-            var v = new CellRangeValidator("XFD1048576:XFD1048576");
+            var v = Create("XFD1048576:XFD1048576");
             Assert.IsTrue(v.IsValid);
         }
 
         [TestMethod]
         public void SingleCellNotationIsValidTest()
         {
-            var v = new CellRangeValidator("A1");
+            var v = Create("A1");
             Assert.IsTrue(v.IsValid);
         }
 
         [TestMethod]
         public void LowerCaseIsValidTest()
         {
-            var v = new CellRangeValidator("a1:b1");
+            var v = Create("a1:b1");
             Assert.IsTrue(v.IsValid);
         }
 
         [TestMethod]
         public void EntireSheetIsValidTest()
         {
-            var v = new CellRangeValidator("A1:XFD1048576");
+            var v = Create("A1:XFD1048576");
             Assert.IsTrue(v.IsValid);
         }
 
         [TestMethod]
         public void CellOrdersCanBeReversedTest()
         {
-            var v = new CellRangeValidator("XFD1048576:A1");
+            var v = Create("XFD1048576:A1");
             Assert.IsTrue(v.IsValid);
         }
 
         [TestMethod]
         public void LessThanMinimimRowIsInvalidTest()
         {
-            var v = new CellRangeValidator("A0:A1");
+            var v = Create("A0:A1");
             Assert.IsFalse(v.IsValid);
         }
 
         [TestMethod]
         public void GreaterThanMaximimRowIsInvalidTest()
         {
-            var v = new CellRangeValidator("A1048577:A1");
+            var v = Create("A1048577:A1");
             Assert.IsFalse(v.IsValid);
         }
 
         [TestMethod]
         public void GreaterThanMaximimColumnIsInvalidTest()
         {
-            var v = new CellRangeValidator("A1:XFE1");
+            var v = Create("A1:XFE1");
             Assert.IsFalse(v.IsValid);
         }
 
         [TestMethod]
         public void SingleCellWithColonIsInvalidTest()
         {
-            var v = new CellRangeValidator("A1:");
+            var v = Create("A1:");
             Assert.IsFalse(v.IsValid);
-            v = new CellRangeValidator(":A1");
+            v = Create(":A1");
             Assert.IsFalse(v.IsValid);
         }
 
         [TestMethod]
         public void SpacesAreInvalidTest()
         {
-            var v = new CellRangeValidator("A 1");
+            var v = Create("A 1");
             Assert.IsFalse(v.IsValid);
         }
 
         [TestMethod]
         public void MissingRowIsInvalidTest()
         {
-            var v = new CellRangeValidator("A");
+            var v = Create("A");
             Assert.IsFalse(v.IsValid);
         }
 
         [TestMethod]
         public void MissingColumnIsInvalidTest()
         {
-            var v = new CellRangeValidator("1");
+            var v = Create("1");
             Assert.IsFalse(v.IsValid);
-        }
-
-        [TestMethod]
-        public void FirstAndLastCellsAreNullWhenInvalidTest()
-        {
-            var v = new CellRangeValidator("A0:A1");
-            Assert.IsNull(v.FirstCell);
-            Assert.IsNull(v.LastCell);
-        }
-
-        [TestMethod]
-        public void FirstAndLastCellsAreAsSpecifiedWhenValidTest()
-        {
-            string c1 = "A1";
-            string c2 = "B2";
-            var v = new CellRangeValidator(String.Format("{0}:{1}", c1, c2));
-            Assert.AreEqual(c1, v.FirstCell);
-            Assert.AreEqual(c2, v.LastCell);
-        }
-
-        [TestMethod]
-        public void FirstAndLastCellsAreEqualForValidSingleCellNotationTest()
-        {
-            string c = "A1";
-            var v = new CellRangeValidator(String.Format("{0}:{0}", c));
-            Assert.AreEqual(c, v.FirstCell);
-            Assert.AreEqual(c, v.LastCell);
         }
 
         [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void GetRangeThrowsExceptionIfInvalidTest()
         {
-            var v = new CellRangeValidator("A0:A1");
+            var v = Create("A0:A1");
             var ws = new Mock<Excel.Worksheet>().Object;
             v.GetRange(ws);
+        }
+
+        [TestMethod]
+        public void RangeNameIsValidIfItAssociatesWithWorksheetTest()
+        {
+            var mock = new Mock<INamedRangeProvider>();
+            var ws = new Mock<Excel.Worksheet>().Object;
+            mock.Setup(m => m.IdentifyWorksheet(It.IsAny<string>())).Returns(ws);
+            var v = Create(String.Empty, mock.Object);
+            Assert.IsTrue(v.IsValid);
+        }
+
+        [TestMethod]
+        public void RangeNameIsInvalidIfItDoesNotAssociateWithWorksheetTest()
+        {
+            var mock = new Mock<INamedRangeProvider>();
+            mock.Setup(m => m.IdentifyWorksheet(It.IsAny<string>())).Returns(null as Excel.Worksheet);
+            var v = Create(String.Empty, mock.Object);
+            Assert.IsFalse(v.IsValid);
         }
     }
 }

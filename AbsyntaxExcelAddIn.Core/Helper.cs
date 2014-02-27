@@ -1,4 +1,4 @@
-﻿/* Copyright © 2013 Managing Infrastructure Information Ltd
+﻿/* Copyright © 2013-2014 Managing Infrastructure Information Ltd
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided 
@@ -204,14 +204,22 @@ namespace AbsyntaxExcelAddIn.Core
         /// <returns>A sequence of objects representing the values of the cells in the range.</returns>
         public static IEnumerable<object> GetRangeValues(Excel.Range range, RangeOrdering order)
         {
-            if (range.Count == 1) {
-                return new object[] { range.Value2 };
+            Excel.Areas areas = range.Areas;
+            if (areas.Count == 1) {
+                if (range.Count == 1) {
+                    return new object[] { range.Value2 };
+                }
+                object[,] arr = (object[,])range.Value2;
+                if (order == RangeOrdering.ByColumn) {
+                    arr = SwapRowsAndCols(arr);
+                }
+                return arr.Cast<object>();
             }
-            object[,] arr = (object[,])range.Value2;
-            if (order == RangeOrdering.ByColumn) {
-                arr = SwapRowsAndCols(arr);
+            var list = new List<object>();
+            foreach (Excel.Range r in areas) {
+                list.AddRange(GetRangeValues(r, order));
             }
-            return arr.Cast<object>();
+            return list;
         }
 
         /// <summary>
@@ -233,36 +241,65 @@ namespace AbsyntaxExcelAddIn.Core
         }
 
         /// <summary>
-        /// Writes all of the values of the supplied collection to an Excel range.
+        /// Writes all of the values of the supplied collection to an Excel range which may consist of
+        /// multiple areas.
         /// </summary>
         /// <param name="e">The IEnumerable whose enumerated values are to be written to the range.</param>
-        /// <param name="range">An Excel.Range to be used as the basis for defining a new range, in 
-        /// the same worksheet location (i.e. with the same top-left cell) and which is sufficiently 
-        /// large to accommodate all enumerated values.</param>
+        /// <param name="range">The Excel.Range to which all enumerated values are to be written.</param>
         /// <param name="order">A RangeOrdering that determines the next cell in the range to be 
         /// written to.</param>
         public static void SetRangeValues(IEnumerable<object> e, Excel.Range range, RangeOrdering order)
         {
+            Excel.Range[] areas = Helper.Decompose(range).ToArray();
+            int lastIndex = areas.Length - 1;
+            for (int i = 0; i <= lastIndex; i++) {
+                e = SetRangeValues(e, areas[i], order, i == lastIndex);
+            }
+        }
+
+        /// <summary>
+        /// Writes all of the values of the supplied collection to an Excel range which is a single area.
+        /// </summary>
+        private static IEnumerable<object> SetRangeValues(IEnumerable<object> e, Excel.Range range, RangeOrdering order, bool extend)
+        {
+            int cellCount;
             int valueCount = e.Count();
-            if (valueCount == 0) return;
+            if (valueCount == 0) return e;
+            int rangeCount = range.Count;
+            if (valueCount <= rangeCount) {
+                // All values can be accommodated by the range
+                cellCount = rangeCount;
+                extend = false;
+            }
+            else if (extend) {
+                // There are more values than the range can accommodate but we are allowed to extend the range
+                cellCount = valueCount;
+            }
+            else {
+                // There are more values than the range can accommodate and we are not allowed to extend the range
+                cellCount = rangeCount;
+            }
             int rowCount, colCount;
             if (order == RangeOrdering.ByRow) {
                 colCount = range.Columns.Count;
-                rowCount = valueCount / colCount;
-                if (valueCount % colCount > 0) {
+                rowCount = cellCount / colCount;
+                if (cellCount % colCount > 0) {
                     rowCount++;
                 }
             }
             else {
                 rowCount = range.Rows.Count;
-                colCount = valueCount / rowCount;
-                if (valueCount % rowCount > 0) {
+                colCount = cellCount / rowCount;
+                if (cellCount % rowCount > 0) {
                     colCount++;
                 }
             }
-            range = range.Resize[rowCount, colCount];
-            object[,] arr = Get2DArray(e, rowCount, colCount, order);
+            if (extend) {
+                range = range.Resize[rowCount, colCount];
+            }
+            object[,] arr = Get2DArray(e.Take(cellCount), rowCount, colCount, order);
             range.Value2 = arr;
+            return e.Skip(cellCount);
         }
 
         /// <summary>
@@ -297,6 +334,23 @@ namespace AbsyntaxExcelAddIn.Core
                 }
             }
             return arr;
+        }
+
+        /// <summary>
+        /// Splits a range into its constituent areas.
+        /// </summary>
+        /// <param name="range">The range to be decomposed.</param>
+        public static IEnumerable<Excel.Range> Decompose(Excel.Range range)
+        {
+            Excel.Areas areas = range.Areas;
+            if (areas.Count == 1) {
+                return new Excel.Range[] { areas[1] }; // 1-based index => first item
+            }
+            var list = new List<Excel.Range>();
+            foreach (Excel.Range r in areas) {
+                list.AddRange(Decompose(r));
+            }
+            return list;
         }
     }
 }

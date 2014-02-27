@@ -1,4 +1,4 @@
-﻿/* Copyright © 2013 Managing Infrastructure Information Ltd
+﻿/* Copyright © 2013-2014 Managing Infrastructure Information Ltd
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided 
@@ -207,6 +207,8 @@ namespace AbsyntaxExcelAddIn
         private void Application_WorkbookDeactivate(Excel.Workbook workbook)
         {
             PerformRuntimeAdapterAction(a => a.DeactivateWorkbook(workbook.FullName));
+            HasActiveWorkbook = false;
+            UpdateExecutionState();
         }
 
         /// <summary>
@@ -214,6 +216,7 @@ namespace AbsyntaxExcelAddIn
         /// </summary>
         private void Application_WorkbookActivate(Excel.Workbook workbook)
         {
+            HasActiveWorkbook = true;
             PerformRuntimeAdapterAction(a => a.SetActiveWorkbook(workbook.FullName));
             ReadRules();
         }
@@ -317,13 +320,39 @@ namespace AbsyntaxExcelAddIn
             get { return m_serviceAvailable; }
         }
 
+        private bool m_hasActiveWorkbook = true; // Excel starts with an active workbook
+
+        /// <summary>
+        /// Gets a value indicating whether there is a workbook available that is the target of this add-in.
+        /// </summary>
+        /// <remarks>
+        /// Excel's Application object has a property named ActiveWorkbook.  This can be non-null even when the
+        /// active workbook has been deactivated.  There are no events that can be used to determine when a
+        /// workbook has been closed.
+        /// </remarks>
+        public bool HasActiveWorkbook
+        {
+            get { return m_hasActiveWorkbook; }
+            private set {
+                if (m_hasActiveWorkbook != value) {
+                    m_hasActiveWorkbook = value;
+                    OnStateChanged();
+                }
+            }
+        }
+
         /// <summary>
         /// Updates this add-in's execution state property.
         /// </summary>
         private void UpdateExecutionState()
         {
             ProjectInvocationRule[] rules = Rules;
-            ExecutionState = m_serviceAvailable && rules != null && rules.Any(r => r.Enabled && r.IsValid) ? AddInExecutionState.CanExecute : AddInExecutionState.CannotExecute;
+            ExecutionState =
+                HasActiveWorkbook && 
+                m_serviceAvailable && 
+                rules != null && 
+                rules.Any(r => r.Enabled && r.IsValid) 
+                ? AddInExecutionState.CanExecute : AddInExecutionState.CannotExecute;
         }
 
         /// <summary>
@@ -340,22 +369,22 @@ namespace AbsyntaxExcelAddIn
             private set {
                 if (m_executionState != value) {
                     m_executionState = value;
-                    OnExecutionStateChanged();
+                    OnStateChanged();
                 }
             }
         }
 
         /// <summary>
-        /// The event that is raised whenever this add-in's execution state changes.
+        /// The event that is raised whenever this add-in's availability or execution state changes.
         /// </summary>
-        public event EventHandler ExecutionStateChanged;
+        public event EventHandler StateChanged;
 
         /// <summary>
-        /// Raises the ExecutionStateChanged event.
+        /// Raises the StateChanged event.
         /// </summary>
-        private void OnExecutionStateChanged()
+        private void OnStateChanged()
         {
-            var handler = ExecutionStateChanged;
+            var handler = StateChanged;
             if (handler != null) {
                 handler(this, EventArgs.Empty);
             }

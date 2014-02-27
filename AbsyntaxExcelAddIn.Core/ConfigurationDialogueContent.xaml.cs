@@ -1,4 +1,4 @@
-﻿/* Copyright © 2013 Managing Infrastructure Information Ltd
+﻿/* Copyright © 2013-2014 Managing Infrastructure Information Ltd
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided 
@@ -190,6 +190,11 @@ namespace AbsyntaxExcelAddIn.Core
             Keyboard.Focus(uie);
         }
 
+        private void CellRangeCombo_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+        }
+
         private void SetIsSelected(object sender, bool value)
         {
             PerformRuleAction(sender as FrameworkElement, r => r.IsSelected = value);
@@ -237,7 +242,7 @@ namespace AbsyntaxExcelAddIn.Core
         {
             InvokeWorksheetProviderAction(wp => {
                 int id = Helper.CreateId(m_rules.Select(r => r.Id));
-                var pir = new ProjectInvocationRule(wp, id);
+                var pir = new ProjectInvocationRule(wp, new NamedRangeProvider(wp), id);
                 Add(pir);
                 pir.IsSelected = true;
             });

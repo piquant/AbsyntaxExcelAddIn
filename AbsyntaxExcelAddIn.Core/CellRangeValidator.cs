@@ -1,4 +1,4 @@
-﻿/* Copyright © 2013 Managing Infrastructure Information Ltd
+﻿/* Copyright © 2013-2014 Managing Infrastructure Information Ltd
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided 
@@ -25,26 +25,35 @@
  * */
 
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Excel = Microsoft.Office.Interop.Excel;
 
 namespace AbsyntaxExcelAddIn.Core
 {
     /// <summary>
-    /// Defines a worksheet-agnostic, single rectangular range of contiguous row/column cells using a 
-    /// string notation that specifies either a single cell or the cells of any pair of diagonally 
-    /// opposed corners.
+    /// Defines one or more ranges of contiguous row/column cells using a string notation that specifies 
+    /// either a named range, a single cell or the cells of any pair of diagonally opposed corners.
     /// </summary>
     /// <remarks>
-    /// The supported notations are "CaRb" and "CaRb:CcRd".  C is a column label, R is a row number.  A 
-    /// colon is used to separate the two cell descriptors where a range consisting of more than one cell 
-    /// is to be specified.  Examples include:
+    /// Excepting range names, the supported notations are "CaRb" and "CaRb:CcRd".  C is a column label, R 
+    /// is a row number.  A colon is used to separate the two cell descriptors where a range consisting of 
+    /// more than one cell is to be specified.
+    /// <para />
+    /// Examples include:
     /// <para />
     /// "A1"            A single cell at A1.
     /// "A1:A1"         A single cell at A1.
     /// "C10:E15"       A range of 18 cells, the top-left at C10 and the bottom-right at E15.
     /// "Z20:AA1"       A range of 40 cells, the top-left at Z1 and the bottom-right at AA20.
     /// "BB10:BA10"     A range of two cells, the top-left at BA10 and the bottom-right at BB10.
+    /// "MyRange"       A range of cells defined by the specified, workbook-scoped name.  The cells need 
+    ///                 not be contiguous (i.e. the range may consist of multiple areas) but may only belong 
+    ///                 to one worksheet.
+    /// "Sheet1!Local"  A range of cells defined by the specified, worksheet-scoped name.  The cells need 
+    ///                 not be contiguous (i.e. the range may consist of multiple areas).  Note that the range 
+    ///                 name includes the worksheet by which it is scoped, but the associated areas need not 
+    ///                 be on the same worksheet.  They must, however, belong to a single worksheet.
     /// </remarks>
     internal sealed class CellRangeValidator
     {
@@ -53,10 +62,11 @@ namespace AbsyntaxExcelAddIn.Core
         /// </summary>
         /// <param name="range">A string representation that specifies the cells of any pair of diagonally 
         /// opposed corners of the range being represented.</param>
-        public CellRangeValidator(string range)
+        /// <param name="provider">An INamedRangeProvider implementation.</param>
+        public CellRangeValidator(string range, INamedRangeProvider provider)
         {
-            m_range = range.ToUpper();
-            SetState();
+            m_range = range;
+            SetState(provider);
         }
 
         /// <summary>
@@ -72,7 +82,8 @@ namespace AbsyntaxExcelAddIn.Core
         private string m_range;
 
         /// <summary>
-        /// Gets the upper-case cell range notation supplied during instantiation.
+        /// Gets the cell range notation supplied during instantiation, formatted according to 
+        /// its type.
         /// </summary>
         public string Range
         {
@@ -83,22 +94,29 @@ namespace AbsyntaxExcelAddIn.Core
         /// Sets the state of this CellRangeValidator based on the range notation supplied during 
         /// instantiation.
         /// </summary>
-        private void SetState()
+        private void SetState(INamedRangeProvider provider)
         {
-            bool match = s_cellRegex.IsMatch(m_range);
-            if (match) {
-                FirstCell = m_range;
-                LastCell = m_range;
+            if (provider.IdentifyWorksheet(m_range) != null) {
+                IsValid = true;
             }
             else {
-                match = s_rangeRegex.IsMatch(m_range);
+                bool match;
+                string r = m_range.ToUpper();
+                string firstCell = null, lastCell = null;
+                match = s_cellRegex.IsMatch(r);
                 if (match) {
-                    int pos = m_range.IndexOf(":");
-                    FirstCell = m_range.Substring(0, pos);
-                    LastCell = m_range.Substring(pos + 1, m_range.Length - pos - 1);
+                    firstCell = lastCell = r;
                 }
+                else {
+                    match = s_rangeRegex.IsMatch(r);
+                    if (match) {
+                        int pos = r.IndexOf(":");
+                        firstCell = r.Substring(0, pos);
+                        lastCell = r.Substring(pos + 1, r.Length - pos - 1);
+                    }
+                }
+                IsValid = match ? CellIsInRange(firstCell) && CellIsInRange(lastCell) : false;
             }
-            IsValid = match ? CellIsInRange(FirstCell) && CellIsInRange(LastCell) : false;
         }
 
         private static readonly char[] s_digits = "123456789".ToCharArray(); // Don't need zero
@@ -140,22 +158,10 @@ namespace AbsyntaxExcelAddIn.Core
         }
 
         /// <summary>
-        /// Gets a value indicating whether the range notation supplied during instantiation represents a 
-        /// valid Excel worksheet range.
+        /// Gets a value indicating whether the range notation supplied during instantiation represents 
+        /// a valid Excel worksheet range.
         /// </summary>
         public bool IsValid { get; private set; }
-
-        /// <summary>
-        /// Gets the descriptor for the first cell defined in the range notation supplied during 
-        /// instantiation.
-        /// </summary>
-        public string FirstCell { get; private set; }
-
-        /// <summary>
-        /// Gets the descriptor for the second cell defined in the range notation supplied during 
-        /// instantiation.
-        /// </summary>
-        public string LastCell { get; private set; }
 
         /// <summary>
         /// Returns an Excel.Range object for a specified worksheet.
@@ -169,7 +175,7 @@ namespace AbsyntaxExcelAddIn.Core
             if (!IsValid) {
                 throw new InvalidOperationException("Range notation is not valid.");
             }
-            return worksheet.Range[FirstCell, LastCell];
+            return worksheet.Range[m_range];
         }
     }
 }

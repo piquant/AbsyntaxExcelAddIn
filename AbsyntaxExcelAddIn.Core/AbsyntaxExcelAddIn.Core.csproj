@@ -71,12 +71,13 @@
     <Compile Include="AddInExecutionState.cs" />
     <Compile Include="AltGroupBox.cs" />
     <Compile Include="ApplicationRuntimeAdapter.cs" />
+    <Compile Include="AttachedBehaviours\EditableComboBoxBehaviour.cs" />
     <Compile Include="AttachedBehaviours\ListBoxItemBehaviour.cs" />
     <Compile Include="AttachedBehaviours\TextBoxScrollBehaviour.cs" />
     <Compile Include="AttachedBehaviours\TextBoxTextWriter.cs" />
     <Compile Include="AttachedBehaviours\TextBoxTextWriterBehaviour.cs" />
+    <Compile Include="AttachedBehaviours\WpfHelper.cs" />
     <Compile Include="AutoGreyableImage.cs" />
-    <Compile Include="CellRangeValidator.cs" />
     <Compile Include="ConfigurationDialogueContent.xaml.cs">
       <DependentUpon>ConfigurationDialogueContent.xaml</DependentUpon>
     </Compile>
@@ -91,6 +92,7 @@
     <Compile Include="Converters\ProjectExecutionStateToPngUriConverter.cs" />
     <Compile Include="Converters\RangeOrderingConverter.cs" />
     <Compile Include="Converters\TimeUnitConverter.cs" />
+    <Compile Include="CellRangeValidator.cs" />
     <Compile Include="DataRequirement.cs" />
     <Compile Include="ExecutionDialogueContent.xaml.cs">
       <DependentUpon>ExecutionDialogueContent.xaml</DependentUpon>
@@ -103,6 +105,7 @@
     <Compile Include="IDataWriter.cs" />
     <Compile Include="IExecutionCoordinator.cs" />
     <Compile Include="IExecutionItem.cs" />
+    <Compile Include="INamedRangeProvider.cs" />
     <Compile Include="InProgressIndicator.xaml.cs">
       <DependentUpon>InProgressIndicator.xaml</DependentUpon>
     </Compile>
@@ -121,6 +124,7 @@
       <DependentUpon>LicenceDialogueContent.xaml</DependentUpon>
     </Compile>
     <Compile Include="LicenceManager.cs" />
+    <Compile Include="NamedRangeProvider.cs" />
     <Compile Include="NotifyPropertyChangedBase.cs" />
     <Compile Include="PersistedRuleManager.cs" />
     <Compile Include="ProjectConfigurationDialogue.cs">

@@ -29,14 +29,26 @@ using Excel = Microsoft.Office.Interop.Excel;
 namespace AbsyntaxExcelAddIn.Core
 {
     /// <summary>
-    /// Defines a member that a type implements in order to supply the set of available Excel worksheets.
+    /// Defines members that a type implements in order to offer services in respect of Excel range names.
     /// </summary>
-    public interface IWorksheetProvider
+    public interface INamedRangeProvider
     {
         /// <summary>
-        /// Returns an array of zero or more <see cref="Microsoft.Office.Interop.Excel.Worksheet"/>
-        /// instances.
+        /// Returns a list of known range names.
         /// </summary>
-        Excel.Worksheet[] GetWorksheets();
+        /// <returns>An array of zero or more range names.</returns>
+        string[] GetRangeNames();
+
+        /// <summary>
+        /// Identifies the worksheet associated with a range name.
+        /// </summary>
+        /// <param name="rangeName">The range name for which the associated worksheet is required.</param>
+        /// <returns>The associated worksheet, or null if no association can be found.</returns>
+        Excel.Worksheet IdentifyWorksheet(string rangeName);
+
+        /// <summary>
+        /// Clears the INamedRangeProvider of any cached range name details.
+        /// </summary>
+        void Clear();
     }
 }

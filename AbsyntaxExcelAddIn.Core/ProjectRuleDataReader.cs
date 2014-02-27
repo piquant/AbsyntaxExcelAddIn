@@ -1,4 +1,4 @@
-﻿/* Copyright © 2013 Managing Infrastructure Information Ltd
+﻿/* Copyright © 2013-2014 Managing Infrastructure Information Ltd
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided 
@@ -62,7 +62,8 @@ namespace AbsyntaxExcelAddIn.Core
             while (RowHasData(worksheet, m_row)) {
                 m_colIndex = 1;
                 try {
-                    var rule = new ProjectInvocationRule(m_provider, this);
+                    var nrp = new NamedRangeProvider(m_provider);
+                    var rule = new ProjectInvocationRule(m_provider, nrp, this);
                     list.Add(rule);
                 }
                 catch { }

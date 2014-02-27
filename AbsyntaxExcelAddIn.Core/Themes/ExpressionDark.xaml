@@ -1298,7 +1298,7 @@
         </ControlTemplate.Triggers>
     </ControlTemplate>
     <ControlTemplate x:Key="ComboBoxTextBox" TargetType="{x:Type TextBox}">
-        <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
+        <ScrollViewer x:Name="PART_ContentHost" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Background="{TemplateBinding Background}" Focusable="False" />
         <ControlTemplate.Triggers>
         </ControlTemplate.Triggers>
     </ControlTemplate>

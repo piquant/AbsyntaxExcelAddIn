@@ -24,19 +24,47 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * */
 
-using Excel = Microsoft.Office.Interop.Excel;
+using System;
+using System.Windows;
+using System.Windows.Media;
 
-namespace AbsyntaxExcelAddIn.Core
+namespace AbsyntaxExcelAddIn.Core.AttachedBehaviours
 {
     /// <summary>
-    /// Defines a member that a type implements in order to supply the set of available Excel worksheets.
+    /// Static helper class for miscellaneous WPF tasks.
     /// </summary>
-    public interface IWorksheetProvider
+    internal static class WpfHelper
     {
         /// <summary>
-        /// Returns an array of zero or more <see cref="Microsoft.Office.Interop.Excel.Worksheet"/>
-        /// instances.
+        /// Finds the first child object of a specific type, optionally with a specific name,
+        /// from within the visual tree of a DependencyObject.
         /// </summary>
-        Excel.Worksheet[] GetWorksheets();
+        public static T FindChild<T>(this DependencyObject obj, string childName) where T : DependencyObject
+        {
+            T foundChild = null;
+            if (obj != null) {
+                int childCount = VisualTreeHelper.GetChildrenCount(obj);
+                for (int i = 0; i < childCount; i++) {
+                    var child = VisualTreeHelper.GetChild(obj, i);
+                    if (child.GetType() != typeof(T)) {
+                        foundChild = FindChild<T>(child, childName);
+                    }
+                    else if (!String.IsNullOrEmpty(childName)) {
+                        var fe = child as FrameworkElement;
+                        if (fe != null && fe.Name == childName) {
+                            foundChild = (T)child;
+                        }
+                        else {
+                            foundChild = FindChild<T>(child, childName);
+                        }
+                    }
+                    else {
+                        foundChild = (T)child;
+                    }
+                    if (foundChild != null) break;
+                }
+            }
+            return foundChild;
+        }
     }
 }

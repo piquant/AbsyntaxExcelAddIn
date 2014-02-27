@@ -1,4 +1,4 @@
-﻿/* Copyright © 2013 Managing Infrastructure Information Ltd
+﻿/* Copyright © 2013-2014 Managing Infrastructure Information Ltd
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided 
@@ -63,12 +63,15 @@ namespace AbsyntaxExcelAddIn.Core
         /// <summary>
         /// Initialises a new ProjectInvocationRule using persisted field values.
         /// </summary>
-        /// <param name="provider">An IWorksheetProvider implementation.</param>
+        /// <param name="wsProvider">An IWorksheetProvider implementation.</param>
+        /// <param name="nrProvider">An INamedRangeProvider implementation.</param>
         /// <param name="reader">An IDataReader capable of supplying the requisite field values on demand.</param>
-        /// <exception cref="System.ArgumentNullException">The IWorksheetProvider is null.</exception>
-        public ProjectInvocationRule(IWorksheetProvider provider, IDataReader reader)
+        /// <exception cref="System.ArgumentNullException">Either the IWorksheetProvider or the INamedRangeProvider 
+        /// is null.</exception>
+        /// <exception cref="System.NullReferenceException">The IDataReader is null.</exception>
+        public ProjectInvocationRule(IWorksheetProvider wsProvider, INamedRangeProvider nrProvider, IDataReader reader)
         {
-            SetProvider(provider);
+            SetProviders(wsProvider, nrProvider);
             Id = reader.Read<int>();
             UsesInput = reader.Read<bool>();
             InputSheetKey = reader.Read<string>();
@@ -84,49 +87,63 @@ namespace AbsyntaxExcelAddIn.Core
             ReloadProjectBeforeExecuting = reader.Read<bool>();
             Enabled = reader.Read<bool>();
             LastExecutionResult = reader.Read<ExecutionResult>();
+            UpdateInputSheetRangeNames();
+            UpdateOutputSheetRangeNames();
         }
 
         /// <summary>
         /// Initialises a new, empty ProjectInvocationRule instance.
         /// </summary>
-        /// <param name="provider">An IWorksheetProvider implementation.</param>
+        /// <param name="wsProvider">An IWorksheetProvider implementation.</param>
+        /// <param name="nrProvider">An INamedRangeProvider implementation.</param>
         /// <param name="id">A number that identifies the ProjectInvocationRule in a set of such rules.</param>
-        /// <exception cref="System.ArgumentNullException">The IWorksheetProvider is null.</exception>
-        public ProjectInvocationRule(IWorksheetProvider provider, int id)
+        /// <exception cref="System.ArgumentNullException">Either the IWorksheetProvider or the INamedRangeProvider 
+        /// is null.</exception>
+        public ProjectInvocationRule(IWorksheetProvider wsProvider, INamedRangeProvider nrProvider, int id)
         {
-            SetProvider(provider);
+            SetProviders(wsProvider, nrProvider);
             Id = id;
-            SelectFirstSheet(ref m_inputSheetKey);
-            SelectFirstSheet(ref m_outputSheetKey);
+            m_inputSheetKey = m_outputSheetKey = GetFirstSheetKey();
+            UpdateInputSheetRangeNames();
+            UpdateOutputSheetRangeNames();
         }
 
         /// <summary>
-        /// Sets this ProjectInvocationRule's IWorksheetProvider reference, throwing an ArgumentNullException
-        /// if it is null.
+        /// Sets this ProjectInvocationRule's IWorksheetProvider and INamedRangeProvider references, throwing an 
+        /// ArgumentNullException if either is null.
         /// </summary>
-        private void SetProvider(IWorksheetProvider provider)
+        private void SetProviders(IWorksheetProvider wsProvider, INamedRangeProvider nrProvider)
         {
-            if (provider == null) {
-                throw new ArgumentNullException("provider");
+            if (wsProvider == null) {
+                throw new ArgumentNullException("wsProvider");
             }
-            m_provider = provider;
+            if (nrProvider == null) {
+                throw new ArgumentNullException("nrProvider");
+            }
+            m_wsProvider = wsProvider;
+            m_nrProvider = nrProvider;
         }
 
         /// <summary>
-        /// Sets the supplied worksheet key to be that of the first worksheet returned by the encapsulated 
-        /// IWorksheetProvider.
+        /// Gets the key of the first worksheet returned by the encapsulated IWorksheetProvider.
         /// </summary>
-        private void SelectFirstSheet(ref string key)
+        private string GetFirstSheetKey()
         {
             Excel.Worksheet worksheet = GetFirstSheet();
-            key = GetSheetKey(worksheet);
+            return GetSheetKey(worksheet);
         }
 
         /// <summary>
         /// An IWorksheetProvider implementation responsible for supplying the available worksheets on
         /// demand.
         /// </summary>
-        private IWorksheetProvider m_provider;
+        private IWorksheetProvider m_wsProvider;
+
+        /// <summary>
+        /// An INamedRangeProvider implementation responsible for providing services in respect of Excel 
+        /// range names.
+        /// </summary>
+        private INamedRangeProvider m_nrProvider;
 
         private int m_id;
 
@@ -199,7 +216,7 @@ namespace AbsyntaxExcelAddIn.Core
             get { return m_usesInput; }
             set {
                 if (SetProperty(ref m_usesInput, value, () => UsesInput)) {
-                    UpdateValidity();
+                    UpdateValidityInternal();
                 }
             }
         }
@@ -226,24 +243,53 @@ namespace AbsyntaxExcelAddIn.Core
             set {
                 Excel.Worksheet ws = GetSheetByName(value);
                 m_inputSheetKey = GetSheetKey(ws);
+                EnsureCompatibleCellRange(m_inputSheetKey, InputCellRange, () => InputCellRange = String.Empty);
                 OnPropertyChanged(() => InputSheetName);
-                UpdateValidity();
+                UpdateValidityInternal();
             }
         }
 
-        private string m_inputCellRange = "A1:A1";
+        /// <summary>
+        /// Ensures that a cell range is compatible with a currently selected sheet name.
+        /// </summary>
+        private void EnsureCompatibleCellRange(string sheetKey, string cellRange, Action action)
+        {
+            Excel.Worksheet ws = m_nrProvider.IdentifyWorksheet(cellRange);
+            if (ws == null) return;
+            string otherKey = GetSheetKey(ws);
+            if (sheetKey != otherKey) {
+                action();
+            }
+        }
 
         /// <summary>
-        /// Gets or sets a notation defining a contiguous range of cells that, when coupled with the selected 
-        /// input worksheet, will be used to obtain input data to be passed to the represented Absyntax project 
-        /// before each invocation when UsesInput is set to true.
+        /// Updates the list of available input sheet range names for the currently selected input worksheet 
+        /// name.
         /// </summary>
+        private void UpdateInputSheetRangeNames()
+        {
+            string[] rangeNames = m_nrProvider.GetRangeNames();
+            InputSheetRangeNames = rangeNames;
+        }
+
+        private string m_inputCellRange = "A1:B2";
+
+        /// <summary>
+        /// Gets or sets a notation defining a range of cells that will be used to obtain input data to be 
+        /// passed to the represented Absyntax project before each invocation when UsesInput is set to true.
+        /// </summary>
+        /// <remarks>
+        /// This property supports range names.  Because a named range may consist of multiple areas, this 
+        /// means that it is possible to read input data from non-contiguous cells.  In such cases, data is 
+        /// read from areas in the order they are defined within the named range.
+        /// </remarks>
         public string InputCellRange
         {
             get { return m_inputCellRange; }
             set {
                 if (SetProperty(ref m_inputCellRange, value, () => InputCellRange)) {
-                    UpdateValidity();
+                    EnsureCompatibleInputSheet();
+                    UpdateValidityInternal();
                 }
             }
         }
@@ -275,7 +321,7 @@ namespace AbsyntaxExcelAddIn.Core
             get { return m_usesOutput; }
             set {
                 if (SetProperty(ref m_usesOutput, value, () => UsesOutput)) {
-                    UpdateValidity();
+                    UpdateValidityInternal();
                 }
             }
         }
@@ -302,17 +348,17 @@ namespace AbsyntaxExcelAddIn.Core
             set {
                 Excel.Worksheet ws = GetSheetByName(value);
                 m_outputSheetKey = GetSheetKey(ws);
+                EnsureCompatibleCellRange(m_outputSheetKey, OutputCellRange, () => OutputCellRange = String.Empty);
                 OnPropertyChanged(() => OutputSheetName);
-                UpdateValidity();
+                UpdateValidityInternal();
             }
         }
 
-        private string m_outputCellRange = "B1:B1";
+        private string m_outputCellRange = "C1";
 
         /// <summary>
-        /// Gets or sets a notation defining a contiguous range of cells that, when coupled with the selected 
-        /// output worksheet, will be used to write data received from the represented Absyntax project after 
-        /// each invocation when UsesOutput is set to true.
+        /// Gets or sets a notation defining a range of cells that will be used to write data received from 
+        /// the represented Absyntax project after each invocation when UsesOutput is set to true.
         /// </summary>
         /// <remarks>
         /// Note that a project's output is not confined to the specified range.  For example, if the range
@@ -327,15 +373,31 @@ namespace AbsyntaxExcelAddIn.Core
         /// defined as "C6:C10" with an output range ordering equal to RangeOrdering.ByColumn will result in 
         /// the first five output values being written to cells C6 through C10, the next five being written to 
         /// cells D6 through D10 and so on.
+        /// <para />
+        /// This property also supports range names.  Because a named range may consist of multiple areas, this 
+        /// means that it is possible to write output data to non-contiguous cells.  In such cases, data is 
+        /// written to areas in the order they are defined within the named range.  Only the last area may be 
+        /// extended as described above.  All other areas are filled up in turn.
         /// </remarks>
         public string OutputCellRange
         {
             get { return m_outputCellRange; }
             set {
                 if (SetProperty(ref m_outputCellRange, value, () => OutputCellRange)) {
-                    UpdateValidity();
+                    EnsureCompatibleOutputSheet();
+                    UpdateValidityInternal();
                 }
             }
+        }
+
+        /// <summary>
+        /// Updates the list of available output sheet range names for the currently selected output worksheet 
+        /// name.
+        /// </summary>
+        private void UpdateOutputSheetRangeNames()
+        {
+            string[] rangeNames = m_nrProvider.GetRangeNames();
+            OutputSheetRangeNames = rangeNames;
         }
 
         private RangeOrdering m_outputRangeOrder;
@@ -393,7 +455,7 @@ namespace AbsyntaxExcelAddIn.Core
             get { return m_projectPath; }
             set {
                 if (SetProperty(ref m_projectPath, value, () => ProjectPath)) {
-                    UpdateValidity();
+                    UpdateValidityInternal();
                 }
             }
         }
@@ -403,7 +465,7 @@ namespace AbsyntaxExcelAddIn.Core
         /// </summary>
         private Excel.Worksheet GetFirstSheet()
         {
-            return m_provider.GetWorksheets().FirstOrDefault();
+            return m_wsProvider.GetWorksheets().FirstOrDefault();
         }
 
         /// <summary>
@@ -411,7 +473,7 @@ namespace AbsyntaxExcelAddIn.Core
         /// </summary>
         private Excel.Worksheet GetSheetByName(string name)
         {
-            return m_provider.GetWorksheets().FirstOrDefault(w => w.Name == name);
+            return m_wsProvider.GetWorksheets().FirstOrDefault(w => w.Name == name);
         }
 
         /// <summary>
@@ -420,7 +482,7 @@ namespace AbsyntaxExcelAddIn.Core
         private Excel.Worksheet GetSheetByKey(string key)
         {
             var wi = new WorksheetIdentifier();
-            return wi.GetWorksheet(m_provider, key);
+            return wi.GetWorksheet(m_wsProvider, key);
         }
 
         /// <summary>
@@ -446,8 +508,18 @@ namespace AbsyntaxExcelAddIn.Core
         /// </summary>
         public IEnumerable<string> AvailableSheetNames
         {
-            get { return m_provider.GetWorksheets().Select(w => w.Name); }
+            get { return m_wsProvider.GetWorksheets().Select(w => w.Name); }
         }
+
+        /// <summary>
+        /// Gets a collection of the available range names for the currently selected input worksheet name.
+        /// </summary>
+        public IEnumerable<string> InputSheetRangeNames { get; private set; }
+
+        /// <summary>
+        /// Gets a collection of the available range names for the currently selected output worksheet name.
+        /// </summary>
+        public IEnumerable<string> OutputSheetRangeNames { get; private set; }
 
         /// <summary>
         /// Gets a collection of the names of the range-ordering options.
@@ -468,9 +540,75 @@ namespace AbsyntaxExcelAddIn.Core
         /// <summary>
         /// Updates the IsValid property value based on the state of this ProjectInvocationRule.
         /// </summary>
+        private void UpdateValidityInternal()
+        {
+            UpdateValidity(false, false);
+        }
+
+        /// <summary>
+        /// Ensures that selected input and output sheets are compatible with their respective named cell 
+        /// ranges and updates the IsValid property value based on the state of this ProjectInvocationRule.
+        /// </summary>
         public void UpdateValidity()
         {
+            UpdateValidity(true, true);
+        }
+
+        /// <summary>
+        /// Ensures that selected input and output sheets are compatible with their respective named cell 
+        /// ranges and updates the IsValid property value based on the state of this ProjectInvocationRule.
+        /// </summary>
+        /// <param name="clearNamedRangeProvider">Determines whether the INamedRangeProvider is cleared
+        /// first.</param>
+        /// <param name="ensureCompatibleSheets">Determines whether operations should be performed to ensure
+        /// that the input and output sheet names are compatible with the current input and output cell ranges.</param>
+        private void UpdateValidity(bool clearNamedRangeProvider, bool ensureCompatibleSheets)
+        {
+            if (clearNamedRangeProvider) {
+                m_nrProvider.Clear();
+            }
+            if (ensureCompatibleSheets) {
+                EnsureCompatibleInputSheet();
+                EnsureCompatibleOutputSheet();
+            }
             IsValid = DetermineValidity();
+        }
+
+        /// <summary>
+        /// Ensures that the selected input sheet is compatible with the input cell range.
+        /// </summary>
+        /// <remarks>
+        /// If the input cell range references a range name, this method ensures that the selected input
+        /// sheet name corresponds with the name of the worksheet that is referenced by said name.  Excel 
+        /// allows the user to change the areas of a named range.
+        /// </remarks>
+        private void EnsureCompatibleInputSheet()
+        {
+            EnsureCompatibleSheet(InputCellRange, ws => InputSheetName = ws.Name);
+        }
+
+        /// <summary>
+        /// Ensures that the selected output sheet is compatible with the output cell range.
+        /// </summary>
+        /// <remarks>
+        /// If the output cell range references a range name, this method ensures that the selected output
+        /// sheet name corresponds with the name of the worksheet that is referenced by said name.  Excel 
+        /// allows the user to change the areas of a named range.
+        /// </remarks>
+        private void EnsureCompatibleOutputSheet()
+        {
+            EnsureCompatibleSheet(OutputCellRange, ws => OutputSheetName = ws.Name);
+        }
+
+        /// <summary>
+        /// Invokes an Action if a range name cannot be associated with an existing worksheet.
+        /// </summary>
+        private void EnsureCompatibleSheet(string cellRange, Action<Excel.Worksheet> action)
+        {
+            Excel.Worksheet ws = m_nrProvider.IdentifyWorksheet(cellRange);
+            if (ws != null) {
+                action(ws);
+            }
         }
 
         /// <summary>
@@ -483,7 +621,7 @@ namespace AbsyntaxExcelAddIn.Core
                 if (ws == null) {
                     return false;
                 }
-                var v = new CellRangeValidator(InputCellRange);
+                var v = new CellRangeValidator(InputCellRange, m_nrProvider);
                 if (!v.IsValid) {
                     return false;
                 }
@@ -493,7 +631,7 @@ namespace AbsyntaxExcelAddIn.Core
                 if (ws == null) {
                     return false;
                 }
-                var v = new CellRangeValidator(OutputCellRange);
+                var v = new CellRangeValidator(OutputCellRange, m_nrProvider);
                 if (!v.IsValid) {
                     return false;
                 }
@@ -562,7 +700,7 @@ namespace AbsyntaxExcelAddIn.Core
             if (!UsesInput || !IsValid) {
                 throw new InvalidOperationException();
             }
-            var v = new CellRangeValidator(InputCellRange);
+            var v = new CellRangeValidator(InputCellRange, m_nrProvider);
             Excel.Worksheet ws = GetSheetByKey(m_inputSheetKey);
             Excel.Range r = v.GetRange(ws);
             return Helper.GetRangeValues(r, InputRangeOrder);
@@ -581,7 +719,7 @@ namespace AbsyntaxExcelAddIn.Core
             if (!UsesOutput) {
                 throw new InvalidOperationException();
             }
-            var v = new CellRangeValidator(OutputCellRange);
+            var v = new CellRangeValidator(OutputCellRange, m_nrProvider);
             Excel.Worksheet ws = GetSheetByKey(m_outputSheetKey);
             Excel.Range r = v.GetRange(ws);
             IEnumerable e = data as IEnumerable;
@@ -600,7 +738,8 @@ namespace AbsyntaxExcelAddIn.Core
         public ProjectInvocationRule Clone()
         {
             var rule = new ProjectInvocationRule() {
-                m_provider = this.m_provider,
+                m_wsProvider = this.m_wsProvider,
+                m_nrProvider = this.m_nrProvider,
                 m_id = this.m_id,
                 m_usesInput = this.m_usesInput,
                 m_inputSheetKey = this.m_inputSheetKey,
@@ -617,7 +756,10 @@ namespace AbsyntaxExcelAddIn.Core
                 m_enabled = this.m_enabled,
                 m_lastExecutionResult = this.m_lastExecutionResult
             };
-            rule.UpdateValidity();
+            rule.m_nrProvider.Clear();
+            rule.UpdateInputSheetRangeNames();
+            rule.UpdateOutputSheetRangeNames();
+            rule.UpdateValidity(false, true);
             return rule;
         }
 

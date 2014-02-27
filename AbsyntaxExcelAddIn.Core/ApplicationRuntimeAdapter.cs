@@ -1,4 +1,4 @@
-﻿/* Copyright © 2013 Managing Infrastructure Information Ltd
+﻿/* Copyright © 2013-2014 Managing Infrastructure Information Ltd
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided 
@@ -26,6 +26,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Timers;
@@ -286,6 +287,11 @@ namespace AbsyntaxExcelAddIn.Core
         private object m_runLock = new object();
 
         /// <summary>
+        /// The last bounds of the ProjectExecutionDialogue.
+        /// </summary>
+        private Rectangle? m_bounds;
+
+        /// <summary>
         /// Invokes those of the supplied project invocation rules that are valid and enabled.
         /// </summary>
         /// <param name="mode">The ExecutionMode to be used.</param>
@@ -294,7 +300,12 @@ namespace AbsyntaxExcelAddIn.Core
         {
             lock (m_runLock) {
                 var d = new ProjectExecutionDialogue();
+                if (m_bounds.HasValue) {
+                    d.Bounds = m_bounds.Value;
+                    d.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
+                }
                 PerformActiveAdapterAction(a => a.Run(mode, rules, m_manager, d));
+                m_bounds = d.Bounds;
             }
         }
 
