@@ -45,10 +45,5 @@ namespace AbsyntaxExcelAddIn.Core
         /// <param name="rangeName">The range name for which the associated worksheet is required.</param>
         /// <returns>The associated worksheet, or null if no association can be found.</returns>
         Excel.Worksheet IdentifyWorksheet(string rangeName);
-
-        /// <summary>
-        /// Clears the INamedRangeProvider of any cached range name details.
-        /// </summary>
-        void Clear();
     }
 }

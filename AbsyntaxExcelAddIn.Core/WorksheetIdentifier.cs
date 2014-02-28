@@ -33,7 +33,7 @@ namespace AbsyntaxExcelAddIn.Core
     /// <summary>
     /// Assigns GUIDs to Excel worksheets.
     /// </summary>
-    internal sealed class WorksheetIdentifier
+    public sealed class WorksheetIdentifier
     {
         /// <summary>
         /// Initialises a new WorksheetIdentifier instance.

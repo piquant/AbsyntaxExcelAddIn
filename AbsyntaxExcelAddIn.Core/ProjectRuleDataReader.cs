@@ -38,13 +38,17 @@ namespace AbsyntaxExcelAddIn.Core
         /// <summary>
         /// Initialises a new ProjectRuleDataReader instance.
         /// </summary>
-        /// <param name="provider">An IWorksheetProvider.</param>
-        public ProjectRuleDataReader(IWorksheetProvider provider)
+        /// <param name="wsProvider">An IWorksheetProvider implementation.</param>
+        /// <param name="nrProvider">An INamedRangeProvider implementation</param>
+        public ProjectRuleDataReader(IWorksheetProvider wsProvider, INamedRangeProvider nrProvider)
         {
-            m_provider = provider;
+            m_wsProvider = wsProvider;
+            m_nrProvider = nrProvider;
         }
 
-        private IWorksheetProvider m_provider;
+        private IWorksheetProvider m_wsProvider;
+
+        private INamedRangeProvider m_nrProvider;
 
         /// <summary>
         /// Converts worksheet data into a collection of zero or more ProjectInvocationRules.
@@ -62,8 +66,7 @@ namespace AbsyntaxExcelAddIn.Core
             while (RowHasData(worksheet, m_row)) {
                 m_colIndex = 1;
                 try {
-                    var nrp = new NamedRangeProvider(m_provider);
-                    var rule = new ProjectInvocationRule(m_provider, nrp, this);
+                    var rule = new ProjectInvocationRule(m_wsProvider, m_nrProvider, this);
                     list.Add(rule);
                 }
                 catch { }

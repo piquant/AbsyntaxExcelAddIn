@@ -542,7 +542,7 @@ namespace AbsyntaxExcelAddIn.Core
         /// </summary>
         private void UpdateValidityInternal()
         {
-            UpdateValidity(false, false);
+            UpdateValidity(false);
         }
 
         /// <summary>
@@ -551,22 +551,17 @@ namespace AbsyntaxExcelAddIn.Core
         /// </summary>
         public void UpdateValidity()
         {
-            UpdateValidity(true, true);
+            UpdateValidity(true);
         }
 
         /// <summary>
         /// Ensures that selected input and output sheets are compatible with their respective named cell 
         /// ranges and updates the IsValid property value based on the state of this ProjectInvocationRule.
         /// </summary>
-        /// <param name="clearNamedRangeProvider">Determines whether the INamedRangeProvider is cleared
-        /// first.</param>
         /// <param name="ensureCompatibleSheets">Determines whether operations should be performed to ensure
         /// that the input and output sheet names are compatible with the current input and output cell ranges.</param>
-        private void UpdateValidity(bool clearNamedRangeProvider, bool ensureCompatibleSheets)
+        private void UpdateValidity(bool ensureCompatibleSheets)
         {
-            if (clearNamedRangeProvider) {
-                m_nrProvider.Clear();
-            }
             if (ensureCompatibleSheets) {
                 EnsureCompatibleInputSheet();
                 EnsureCompatibleOutputSheet();
@@ -756,10 +751,9 @@ namespace AbsyntaxExcelAddIn.Core
                 m_enabled = this.m_enabled,
                 m_lastExecutionResult = this.m_lastExecutionResult
             };
-            rule.m_nrProvider.Clear();
             rule.UpdateInputSheetRangeNames();
             rule.UpdateOutputSheetRangeNames();
-            rule.UpdateValidity(false, true);
+            rule.UpdateValidity(true);
             return rule;
         }
 

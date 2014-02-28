@@ -272,10 +272,30 @@ namespace AbsyntaxExcelAddIn
                 Rules = new ProjectInvocationRule[0];
             }
             else {
+                NamedRangeProvider nrp = NamedRangeProvider;
+                nrp.Clear();
                 var prm = new PersistedRuleManager();
-                prm.Load(this, ws, out m_mode, out m_rules);
+                prm.Load(this, nrp, ws, out m_mode, out m_rules);
                 RationaliseRuleIds();
                 UpdateExecutionState();
+            }
+        }
+
+        /// <summary>
+        /// The NamedRangeProvider instance used by this add-in.
+        /// </summary>
+        private NamedRangeProvider m_nrProvider;
+
+        /// <summary>
+        /// Gets the NamedRangeProvider instance used by this add-in.
+        /// </summary>
+        internal NamedRangeProvider NamedRangeProvider
+        {
+            get {
+                if (m_nrProvider == null) {
+                    m_nrProvider = new NamedRangeProvider(this);
+                }
+                return m_nrProvider;
             }
         }
 
@@ -344,7 +364,7 @@ namespace AbsyntaxExcelAddIn
         /// <summary>
         /// Updates this add-in's execution state property.
         /// </summary>
-        private void UpdateExecutionState()
+        internal void UpdateExecutionState()
         {
             ProjectInvocationRule[] rules = Rules;
             ExecutionState =
@@ -466,6 +486,8 @@ namespace AbsyntaxExcelAddIn
         /// </summary>
         private void UpdateRuleValidities()
         {
+            NamedRangeProvider nrp = NamedRangeProvider;
+            nrp.Clear();
             ProjectInvocationRule[] rules = Rules;
             if (rules == null) return;
             foreach (ProjectInvocationRule rule in rules) {

@@ -104,7 +104,9 @@ namespace AbsyntaxExcelAddIn
         private void Configure_Click(object sender, RibbonControlEventArgs e)
         {
             ThisAddIn addIn = Globals.ThisAddIn;
-            var d = new ProjectConfigurationDialogue(addIn);
+            NamedRangeProvider nrp = addIn.NamedRangeProvider;
+            nrp.Clear();
+            var d = new ProjectConfigurationDialogue(addIn, nrp);
             if (m_bounds.HasValue) {
                 d.Bounds = m_bounds.Value;
                 d.StartPosition = FormStartPosition.Manual;
@@ -117,6 +119,17 @@ namespace AbsyntaxExcelAddIn
                 addIn.Mode = d.Mode;
                 addIn.Rules = rules = d.GetRules();
                 addIn.WriteRules();
+            }
+            else {
+                /* It is possible that something has been changed in Excel - a range name, for example - 
+                 * and this has had an effect on the validity of a project invocation rule.  Even if the
+                 * user cancels the dialogue, we should take this opportunity to ensure that the Run 
+                 * button's enabled state is set correctly.
+                 * */
+                foreach (ProjectInvocationRule rule in rules) {
+                    rule.UpdateValidity();
+                }
+                addIn.UpdateExecutionState();
             }
             m_bounds = d.Bounds;
         }

@@ -78,11 +78,14 @@ namespace AbsyntaxExcelAddIn.Core
 
         public IWorksheetProvider WorksheetProvider { get; set; }
 
-        private void InvokeWorksheetProviderAction(Action<IWorksheetProvider> action)
+        public INamedRangeProvider NamedRangeProvider { get; set; }
+
+        private void InvokeProvidersAction(Action<IWorksheetProvider, INamedRangeProvider> action)
         {
-            var wp = WorksheetProvider;
-            if (wp != null) {
-                action(wp);
+            IWorksheetProvider wsp = WorksheetProvider;
+            INamedRangeProvider nrp = NamedRangeProvider;
+            if (wsp != null && nrp != null) {
+                action(wsp, nrp);
             }
         }
 
@@ -240,9 +243,9 @@ namespace AbsyntaxExcelAddIn.Core
 
         private void AddRuleButton_Click(object sender, RoutedEventArgs e)
         {
-            InvokeWorksheetProviderAction(wp => {
+            InvokeProvidersAction((wsp, nrp) => {
                 int id = Helper.CreateId(m_rules.Select(r => r.Id));
-                var pir = new ProjectInvocationRule(wp, new NamedRangeProvider(wp), id);
+                var pir = new ProjectInvocationRule(wsp, nrp, id);
                 Add(pir);
                 pir.IsSelected = true;
             });

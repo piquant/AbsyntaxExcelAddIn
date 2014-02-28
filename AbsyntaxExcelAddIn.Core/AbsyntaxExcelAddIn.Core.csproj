@@ -124,7 +124,6 @@
       <DependentUpon>LicenceDialogueContent.xaml</DependentUpon>
     </Compile>
     <Compile Include="LicenceManager.cs" />
-    <Compile Include="NamedRangeProvider.cs" />
     <Compile Include="NotifyPropertyChangedBase.cs" />
     <Compile Include="PersistedRuleManager.cs" />
     <Compile Include="ProjectConfigurationDialogue.cs">

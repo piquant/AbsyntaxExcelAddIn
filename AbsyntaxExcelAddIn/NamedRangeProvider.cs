@@ -27,9 +27,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AbsyntaxExcelAddIn.Core;
 using Excel = Microsoft.Office.Interop.Excel;
 
-namespace AbsyntaxExcelAddIn.Core
+namespace AbsyntaxExcelAddIn
 {
     /// <summary>
     /// A provider of details pertaining to range names.

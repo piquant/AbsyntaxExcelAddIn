@@ -61,14 +61,15 @@ namespace AbsyntaxExcelAddIn.Core
         /// its own row, starting at row 2: each column contains a field value and all such values are used 
         /// collectively to rehydrate a rule.
         /// </remarks>
-        /// <param name="provider">An IWorksheetProvider implementation.</param>
+        /// <param name="wsProvider">An IWorksheetProvider implementation.</param>
+        /// <param name="nrProvider">An INamedRangeProvider implementation.</param>
         /// <param name="ws">The worksheet containing the rules to be read.</param>
         /// <param name="mode">The ExecutionMode read from the worksheet.</param>
         /// <param name="rules">The project invocation rules read from the worksheet.</param>
-        public void Load(IWorksheetProvider provider, Excel.Worksheet ws, out ExecutionMode mode, out ProjectInvocationRule[] rules)
+        public void Load(IWorksheetProvider wsProvider, INamedRangeProvider nrProvider, Excel.Worksheet ws, out ExecutionMode mode, out ProjectInvocationRule[] rules)
         {
             mode = Helper.ReadCell<ExecutionMode>(ws, 1, 1);
-            var reader = new ProjectRuleDataReader(provider);
+            var reader = new ProjectRuleDataReader(wsProvider, nrProvider);
             rules = reader.Read(ws, 2);
         }
     }

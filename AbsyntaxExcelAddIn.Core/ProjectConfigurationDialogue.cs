@@ -36,19 +36,17 @@ namespace AbsyntaxExcelAddIn.Core
     /// </summary>
     public partial class ProjectConfigurationDialogue : Form
     {
-        public ProjectConfigurationDialogue(IWorksheetProvider provider)
+        public ProjectConfigurationDialogue(IWorksheetProvider wsProvider, INamedRangeProvider nrProvider)
         {
             InitializeComponent();
             Text = TextResources.Title_ProjectConfigurationDialogue;
-            m_provider = provider;
             DialogResult = DialogResult.Cancel;
             ConfigurationDialogueContent content = Content;
-            content.WorksheetProvider = provider;
+            content.WorksheetProvider = wsProvider;
+            content.NamedRangeProvider = nrProvider;
             content.Accepted += Content_Accepted;
             content.Cancelled += Content_Cancelled;
         }
-
-        private IWorksheetProvider m_provider;
 
         private ConfigurationDialogueContent Content
         {
